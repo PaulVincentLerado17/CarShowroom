@@ -8,6 +8,7 @@
     <title>A-Frame Porsche Rotate</title>
     <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
     <script src="https://unpkg.com/aframe-event-set-component@5.x.x/dist/aframe-event-set-component.min.js"></script>
+    
   </head>
   <body>
     <a-scene>
@@ -24,6 +25,16 @@
           preload="auto"
           src="./gtrVideo.mp4"
         ></video>
+        <video
+          id="porscheVideo"
+          autoplay
+          loop
+          muted
+          playsinline
+          crossorigin="anonymous"
+          preload="auto"
+          src="./porscheVideo.mp4"
+        ></video>
       </a-assets>
 
       <!-- GTR -->
@@ -35,6 +46,7 @@
           radius="4"
           height="0.5"
           color="#808080"
+          
         >
           <a-text
             id="cylinderText1"
@@ -73,10 +85,79 @@
             animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear"
             gltf-model="#gtr"
             position="0 0 0"
-            scale="120 120 120"
+            scale="130 130 130"
           ></a-entity>
         </a-entity>
       </a-entity>
+
+
+
+
+
+
+
+      <!-- PORSCHE -->
+      <a-entity>
+        <a-cylinder
+          id="triggerCylinder"
+          class="clickable"
+          position="8 -2 5"
+          radius="4"
+          height="0.5"
+          color="#808080"
+        >
+          <a-text
+            id="cylinderText2"
+            cursor="rayOrigin: mouse"
+            value="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+                  Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+                  Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+                  Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+                  Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"
+            align="center"
+            color="#FFFFFF"
+            visible="false"
+            position="2 4 -1"
+            geometry="primitive: plane; width: 6; height: 6"
+            material="color: #808080"
+            rotation="0 240 0"
+            
+          >
+            <a-video
+              src="#porscheVideo"
+              width="4"
+              height="6"
+              position="5 0 0"
+              material="shader: flat; side: double; transparent: true"
+              rotation="0 180 0"
+              
+            ></a-video>
+          </a-text>
+        </a-cylinder>
+
+        <!-- Rotating model -->
+        <a-entity position="-3 0.5 14.5">
+          <a-entity
+            cursor="rayOrigin: mouse"
+            event-set__enter="_event: mouseenter; _target: #cylinderText2; visible: true"
+            event-set__leave="_event: mouseleave; _target: #cylinderText2; visible: false"
+            animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear"
+            gltf-model="#porsche"
+            position="10 -2 -10"
+            scale="1.5 1.5 1.5"
+          ></a-entity>
+        </a-entity>
+      </a-entity>
+
+
+
+
+
+
+
 
 
       <!-- Camera with cursor -->
@@ -88,57 +169,63 @@
     </a-scene>
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const video = document.querySelector("#gtrVideo");
-
-        // Improved video handling
-        function handleVideo() {
-          // Check if video is ready
-          if (video.readyState >= 3) {
-            // HAVE_FUTURE_DATA
-            video.play().catch((e) => {
-              console.error("Auto-play failed:", e);
-              // Fallback: Play on user interaction
-              document.addEventListener(
-                "click",
-                function playVideo() {
-                  video.play();
-                  document.removeEventListener("click", playVideo);
-                },
-                { once: true }
-              );
-            });
+        document.addEventListener("DOMContentLoaded", function () {
+          const gtrVideo = document.querySelector("#gtrVideo");
+          const porscheVideo = document.querySelector("#porscheVideo");
+  
+          // Improved video handling
+          function handleVideo(video) {
+            // Check if video is ready
+            if (video.readyState >= 3) {
+              // HAVE_FUTURE_DATA
+              video.play().catch((e) => {
+                console.error("Auto-play failed:", e);
+                // Fallback: Play on user interaction
+                document.addEventListener(
+                  "click",
+                  function playVideo() {
+                    video.play();
+                    document.removeEventListener("click", playVideo);
+                  },
+                  { once: true }
+                );
+              });
+            }
           }
-        }
-
-        // Event listeners for video
-        video.addEventListener("loadedmetadata", handleVideo);
-        video.addEventListener("canplay", handleVideo);
-        video.addEventListener("error", function () {
-          console.error("Video error:", video.error);
-          alert(`Video failed to load. Error code: ${video.error.code}`);
-        });
-
-        // Fallback: Try to play after a short delay
-        setTimeout(handleVideo, 1000);
-
-        // Click handler component
-        AFRAME.registerComponent("click-handler", {
-          init: function () {
-            this.el.addEventListener("mouseenter", () => {
-              console.log("Hover detected on:", this.el);
+  
+          // Event listeners for videos
+          [gtrVideo, porscheVideo].forEach(video => {
+            video.addEventListener("loadedmetadata", () => handleVideo(video));
+            video.addEventListener("canplay", () => handleVideo(video));
+            video.addEventListener("error", function () {
+              console.error("Video error:", video.error);
+              alert(`Video failed to load. Error code: ${video.error.code}`);
             });
-
-            this.el.addEventListener("click", (evt) => {
-              console.log("Click event detected on:", this.el);
-              const url = this.el.getAttribute("data-url");
-              if (url) {
-                window.open(url, "_blank");
-              }
-            });
-          },
+          });
+  
+          // Fallback: Try to play after a short delay
+          setTimeout(() => {
+            handleVideo(gtrVideo);
+            handleVideo(porscheVideo);
+          }, 1000);
+  
+          // Click handler component
+          AFRAME.registerComponent("click-handler", {
+            init: function () {
+              this.el.addEventListener("mouseenter", () => {
+                console.log("Hover detected on:", this.el);
+              });
+  
+              this.el.addEventListener("click", (evt) => {
+                console.log("Click event detected on:", this.el);
+                const url = this.el.getAttribute("data-url");
+                if (url) {
+                  window.open(url, "_blank");
+                }
+              });
+            },
+          });
         });
-      });
-    </script>
-  </body>
-</html>
+      </script>
+    </body>
+  </html>
