@@ -31,7 +31,7 @@
         <a-cylinder
           id="triggerCylinder"
           class="clickable"
-          position="0 0 -10"
+          position="0 -2 -10"
           radius="4"
           height="0.5"
           color="#808080"
@@ -50,7 +50,7 @@
             align="center"
             color="#FFFFFF"
             visible="false"
-            position="0 4 0"
+            position="-2 4 0"
             geometry="primitive: plane; width: 6; height: 6"
             material="color: #808080"
           >
@@ -65,7 +65,7 @@
         </a-cylinder>
 
         <!-- Rotating model -->
-        <a-entity position="0 0.5 -7">
+        <a-entity position="0 -1.5 -8">
           <a-entity
             cursor="rayOrigin: mouse"
             event-set__enter="_event: mouseenter; _target: #cylinderText1; visible: true"
@@ -81,7 +81,9 @@
 
       <!-- Camera with cursor -->
       <a-camera>
-        <!-- <a-cursor></a-cursor> -->
+        <a-cursor
+        material="color: #FFFFFF; opacity: 0.5; transparent: true">
+    </a-cursor>
       </a-camera>
     </a-scene>
 
