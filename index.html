@@ -1,3 +1,5 @@
+
+
 <html>
   <head>
     <meta charset="utf-8" />
@@ -193,20 +195,6 @@
     <script>
       // Global flag to prevent multiple model changes at once
       let isChangingModel = false;
-      let currentModel = 'white'; // Track current model
-      
-      // Debounce function to prevent rapid clicks
-      function debounce(func, wait) {
-        let timeout;
-        return function() {
-          const context = this;
-          const args = arguments;
-          clearTimeout(timeout);
-          timeout = setTimeout(() => {
-            func.apply(context, args);
-          }, wait);
-        };
-      }
       
       // link
       function setupImageLinks() {
@@ -227,9 +215,8 @@
 
       // Function to change Porsche model with memory management
       function changePorscheModel(color) {
-        if (isChangingModel || currentModel === color) return;
+        if (isChangingModel) return;
         isChangingModel = true;
-        currentModel = color;
         
         const porscheModel = document.querySelector("#porscheModel");
         const spinner = document.querySelector("#loadingSpinner");
@@ -238,95 +225,58 @@
         spinner.setAttribute('visible', 'true');
         porscheModel.setAttribute('visible', 'false');
         
-        // Stop any animations during transition
-        porscheModel.removeAttribute('animation');
+        // Remove previous model to free memory
+        porscheModel.removeAttribute('gltf-model');
         
-        // Remove previous model components
-        if (porscheModel.components['gltf-model']) {
-          const gltfModel = porscheModel.components['gltf-model'];
-          if (gltfModel.model) {
-            // Dispose of Three.js objects if they exist
-            if (gltfModel.model.traverse) {
-              gltfModel.model.traverse(node => {
-                if (node.isMesh) {
-                  if (node.geometry) node.geometry.dispose();
-                  if (node.material) {
-                    if (Array.isArray(node.material)) {
-                      node.material.forEach(m => m.dispose());
-                    } else {
-                      node.material.dispose();
-                    }
-                  }
-                }
-              });
-            }
-            // Remove from scene
-            if (gltfModel.model.parent) {
-              gltfModel.model.parent.remove(gltfModel.model);
-            }
-          }
-          porscheModel.removeAttribute('gltf-model');
-        }
-        
-        // Force garbage collection (where supported)
-        if (window.gc) {
-          window.gc();
-        }
-        
-        // Add small delay to ensure cleanup
+        // Wait for cleanup to complete
         setTimeout(() => {
           try {
-            const modelSrc = color === 'white' ? '#whitePorsche' : '#greenPorsche';
-            const scale = color === 'white' ? '1.5 1.5 1.5' : '150 150 150';
-            
-            // Set new model with cache disabled
-            porscheModel.setAttribute('gltf-model', {
-              src: modelSrc,
-              cache: false
-            });
-            
-            porscheModel.setAttribute('scale', scale);
-            
-            // Animation restart
-            porscheModel.setAttribute('animation', {
-              property: 'rotation',
-              to: '0 360 0',
-              loop: true,
-              dur: 8000,
-              easing: 'linear'
-            });
-            
-            // Model loaded handler
-            function finalizeLoad() {
-              porscheModel.setAttribute('visible', 'true');
-              spinner.setAttribute('visible', 'false');
-              isChangingModel = false;
-              porscheModel.removeEventListener('model-loaded', finalizeLoad);
-              porscheModel.removeEventListener('error', finalizeLoad);
+            if (color === 'white') {
+              porscheModel.setAttribute('gltf-model', '#whitePorsche');
+              porscheModel.setAttribute('scale', '1.5 1.5 1.5');
+            } else if (color === 'green') {
+              porscheModel.setAttribute('gltf-model', '#greenPorsche');
+              porscheModel.setAttribute('scale', '150 150 150');
             }
             
-            porscheModel.addEventListener('model-loaded', finalizeLoad);
-            porscheModel.addEventListener('error', finalizeLoad);
+            // Handle successful load
+            function onModelLoaded() {
+              porscheModel.setAttribute('visible', 'true');
+              spinner.setAttribute('visible', 'false');
+              porscheModel.removeEventListener('model-loaded', onModelLoaded);
+              isChangingModel = false;
+            }
+            
+            // Handle errors
+            function onModelError() {
+              console.error('Failed to load model');
+              spinner.setAttribute('visible', 'false');
+              isChangingModel = false;
+              porscheModel.removeEventListener('error', onModelError);
+            }
+            
+            porscheModel.addEventListener('model-loaded', onModelLoaded);
+            porscheModel.addEventListener('error', onModelError);
             
           } catch (error) {
-            console.error('Model change error:', error);
+            console.error('Error changing model:', error);
             spinner.setAttribute('visible', 'false');
             isChangingModel = false;
           }
-        }, 100); // Increased delay for better cleanup
+        }, 50); // Small delay to ensure cleanup
       }
 
       window.addEventListener('DOMContentLoaded', function() {
         setupImageLinks();
         
         // Add debounced event listeners for color buttons
-        document.querySelector("#greenButton").addEventListener('click', debounce(function() {
+        document.querySelector("#greenButton").addEventListener('click', function() {
           changePorscheModel('green');
-        }, 500));
+        });
         
-        document.querySelector("#whiteButton").addEventListener('click', debounce(function() {
+        document.querySelector("#whiteButton").addEventListener('click', function() {
           changePorscheModel('white');
-        }, 500));
+        });
         
         const gtrVideo = document.querySelector("#gtrVideo");
         const porscheVideo = document.querySelector("#porscheVideo");
