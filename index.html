@@ -14,7 +14,9 @@
     <a-scene>
       <a-assets>
         <a-asset-item id="gtr" src="gtr/scene.gltf"></a-asset-item>
-        <a-asset-item id="porsche" src="porsche/scene.gltf"></a-asset-item>
+        <a-asset-item id="whitePorsche" src="porsche/white/scene.gltf"></a-asset-item>
+        <a-asset-item id="greenPorsche" src="porsche/green/scene.gltf"></a-asset-item>
+    
         <img id="background" src="./background.jpg">
         <img id="poster" src="./poster.png">
         <img id="explore" src="./explore.png">
@@ -38,17 +40,12 @@
           preload="auto"
           src="./porscheVideo.mp4"
         ></video>
+      
       </a-assets>
 
       <a-sky src="#background" rotation="0 -90 0" material="shader: flat;" raycaster="objects: .clickable"></a-sky>
 
-
-
-
-
       <a-image src="#poster" position="-30 0 -20" scale="30 20 20" rotation="0 60 0"></a-image>
-
-
 
       <!-- GTR -->
       <a-entity position="0 0 -5">
@@ -59,12 +56,8 @@
           radius="4"
           height="0.5"
           color="#808080"
-          
         >
         <a-image id="gtrLink" src="#explore" position="0 0 6" scale="2 1 1" rotation="0 0 0"></a-image>
-
-
-        
 
           <a-text
             id="cylinderText1"
@@ -80,7 +73,7 @@
             align="center"
             color="#FFFFFF"
             visible="true"
-            position="-2 4 0"
+            position="-2 4 -1.5"
             geometry="primitive: plane; width: 6; height: 6"
             material="color: #808080"
           >
@@ -98,7 +91,6 @@
         <a-entity position="0 -1.5 -8">
           <a-entity
             cursor="rayOrigin: mouse"
-            
             animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear"
             gltf-model="#gtr"
             position="0 0 0"
@@ -106,15 +98,6 @@
           ></a-entity>
         </a-entity>
       </a-entity>
-<!-- 
-      event-set__enter="_event: mouseenter; _target: #cylinderText1; visible: true"
-            event-set__leave="_event: mouseleave; _target: #cylinderText1; visible: false" -->
-
-
-
-
-
-
 
       <!-- PORSCHE -->
       <a-entity position="5 0 -13">
@@ -142,11 +125,10 @@
             align="center"
             color="#FFFFFF"
             visible="true"
-            position="-2 4 -1"
+            position="1.2 4 -3"
             geometry="primitive: plane; width: 6; height: 6"
             material="color: #808080"
             rotation="0 300 0"
-            
           >
             <a-video
               src="#porscheVideo"
@@ -155,7 +137,6 @@
               position="5 0 0"
               material="shader: flat; side: double; transparent: true"
               rotation="0 180 0"
-              
             ></a-video>
           </a-text>
         </a-cylinder>
@@ -163,119 +144,145 @@
         <!-- Rotating model -->
         <a-entity position="-4 0.5 16">
           <a-entity
+            id="porscheModel"
             cursor="rayOrigin: mouse"
-   
             animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear"
-            gltf-model="#porsche"
+            gltf-model="#whitePorsche"
             position="10 -2 -10"
             scale="1.5 1.5 1.5"
           ></a-entity>
         </a-entity>
+
+        <!-- Green Button -->
+        <a-cylinder
+          id="greenButton"
+          class="clickable"
+          position="5.5 -2 9.5"
+          radius="0.3"
+          height="0.1"
+          color="#2c5f34"
+          rotation="90 120 0"
+        ></a-cylinder>
+
+        <!-- White Button -->
+        <a-cylinder
+          id="whiteButton"
+          class="clickable"
+          position="3 -2 5"
+          radius="0.3"
+          height="0.1"
+          color="#FFFFFF"
+          rotation="90 120 0"
+        ></a-cylinder>
       </a-entity>
-
-
-<!-- 
-      event-set__enter="_event: mouseenter; _target: #cylinderText2; visible: true"
-      event-set__leave="_event: mouseleave; _target: #cylinderText2; visible: false" -->
-
-
-
-
-
-
-
-
 
       <!-- Camera with cursor -->
       <a-camera>
         <a-cursor
         material="color: #FFFFFF; opacity: 0.5; transparent: true">
-    </a-cursor>
+        </a-cursor>
       </a-camera>
     </a-scene>
 
     <script>
-
       // link
-
       function setupImageLinks() {
-    const links = [
-      { id: 'gtrLink', url: 'https://www.nissan.ph/vehicles/new/GT-R.html' },
-      { id: 'porscheLink', url: 'https://www.porsche.com/usa/models/911/911-gt3-rs/911-gt3-rs/' }
-    ];
+        const links = [
+          { id: 'gtrLink', url: 'https://www.nissan.ph/vehicles/new/GT-R.html' },
+          { id: 'porscheLink', url: 'https://www.porsche.com/usa/models/911/911-gt3-rs/911-gt3-rs/' },
+        ];
 
-    links.forEach(link => {
-      const element = document.querySelector(`#${link.id}`);
-      if (element) {
-        element.addEventListener('click', function () {
-          window.location.href = link.url;
+        links.forEach(link => {
+          const element = document.querySelector(`#${link.id}`);
+          if (element) {
+            element.addEventListener('click', function () {
+              window.location.href = link.url;
+            });
+          }
         });
       }
-    });
-  }
 
-  window.addEventListener('DOMContentLoaded', setupImageLinks);
+      // Function to change Porsche model
+      function changePorscheModel(color) {
+        const porscheModel = document.querySelector("#porscheModel");
+        if (color === 'white') {
+          porscheModel.setAttribute('gltf-model', '#whitePorsche');
+          porscheModel.setAttribute('scale', '1.5 1.5 1.5'); // Scale for white Porsche
+        } else if (color === 'green') {
+          porscheModel.setAttribute('gltf-model', '#greenPorsche');
+          porscheModel.setAttribute('scale', '150 150 150'); // Scale for green Porsche (adjust as needed)
+        }
+      }
 
+      window.addEventListener('DOMContentLoaded', function() {
+        setupImageLinks();
+        
+        // Add event listeners for color buttons
+        document.querySelector("#greenButton").addEventListener('click', function() {
+          changePorscheModel('green');
+        });
+        
+        document.querySelector("#whiteButton").addEventListener('click', function() {
+          changePorscheModel('white');
+        });
+        
+        const gtrVideo = document.querySelector("#gtrVideo");
+        const porscheVideo = document.querySelector("#porscheVideo");
+    
 
-
-
-        document.addEventListener("DOMContentLoaded", function () {
-          const gtrVideo = document.querySelector("#gtrVideo");
-          const porscheVideo = document.querySelector("#porscheVideo");
-  
-          // Improved video handling
-          function handleVideo(video) {
-            // Check if video is ready
-            if (video.readyState >= 3) {
-              // HAVE_FUTURE_DATA
-              video.play().catch((e) => {
-                console.error("Auto-play failed:", e);
-                // Fallback: Play on user interaction
-                document.addEventListener(
-                  "click",
-                  function playVideo() {
-                    video.play();
-                    document.removeEventListener("click", playVideo);
-                  },
-                  { once: true }
-                );
-              });
-            }
-          }
-  
-          // Event listeners for videos
-          [gtrVideo, porscheVideo].forEach(video => {
-            video.addEventListener("loadedmetadata", () => handleVideo(video));
-            video.addEventListener("canplay", () => handleVideo(video));
-            video.addEventListener("error", function () {
-              console.error("Video error:", video.error);
-              alert(`Video failed to load. Error code: ${video.error.code}`);
+        // Improved video handling
+        function handleVideo(video) {
+          // Check if video is ready
+          if (video.readyState >= 3) {
+            // HAVE_FUTURE_DATA
+            video.play().catch((e) => {
+              console.error("Auto-play failed:", e);
+              // Fallback: Play on user interaction
+              document.addEventListener(
+                "click",
+                function playVideo() {
+                  video.play();
+                  document.removeEventListener("click", playVideo);
+                },
+                { once: true }
+              );
             });
-          });
-  
-          // Fallback: Try to play after a short delay
-          setTimeout(() => {
-            handleVideo(gtrVideo);
-            handleVideo(porscheVideo);
-          }, 1000);
-  
-          // Click handler component
-          AFRAME.registerComponent("click-handler", {
-            init: function () {
-              this.el.addEventListener("mouseenter", () => {
-                console.log("Hover detected on:", this.el);
-              });
-  
-              this.el.addEventListener("click", (evt) => {
-                console.log("Click event detected on:", this.el);
-                const url = this.el.getAttribute("data-url");
-                if (url) {
-                  window.open(url, "_blank");
-                }
-              });
-            },
+          }
+        }
+
+        // Event listeners for videos
+        [gtrVideo, porscheVideo].forEach(video => {
+          video.addEventListener("loadedmetadata", () => handleVideo(video));
+          video.addEventListener("canplay", () => handleVideo(video));
+          video.addEventListener("error", function () {
+            console.error("Video error:", video.error);
+            alert(`Video failed to load. Error code: ${video.error.code}`);
           });
         });
-      </script>
-    </body>
-  </html>
+
+        // Fallback: Try to play after a short delay
+        setTimeout(() => {
+          handleVideo(gtrVideo);
+          handleVideo(porscheVideo);
+        }, 1000);
+
+        // Click handler component
+        AFRAME.registerComponent("click-handler", {
+          init: function () {
+            this.el.addEventListener("mouseenter", () => {
+              console.log("Hover detected on:", this.el);
+            });
+
+            this.el.addEventListener("click", (evt) => {
+              console.log("Click event detected on:", this.el);
+              const url = this.el.getAttribute("data-url");
+              if (url) {
+                window.open(url, "_blank");
+              }
+            });
+          },
+        });
+      });
+    </script>
+  </body>
+</html>
