@@ -8,7 +8,6 @@
     <title>A-Frame Porsche Rotate</title>
     <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
     <script src="https://unpkg.com/aframe-event-set-component@5.x.x/dist/aframe-event-set-component.min.js"></script>
-    
   </head>
   <body>
     <a-scene>
@@ -40,12 +39,19 @@
           preload="auto"
           src="./porscheVideo.mp4"
         ></video>
-      
       </a-assets>
 
       <a-sky src="#background" rotation="0 -90 0" material="shader: flat;" raycaster="objects: .clickable"></a-sky>
 
       <a-image src="#poster" position="-30 0 -20" scale="30 20 20" rotation="0 60 0"></a-image>
+
+      <!-- Loading Spinner -->
+      <a-entity id="loadingSpinner" position="0 1.5 -3" visible="false">
+        <a-ring color="yellow" radius-inner="0.1" radius-outer="0.15" rotation="0 0 90">
+          <a-animation attribute="rotation" dur="2000" to="0 0 -360" easing="linear" repeat="indefinite"></a-animation>
+        </a-ring>
+        <a-text value="Loading Model..." position="0 -0.2 0" align="center" color="white" scale="0.5 0.5 0.5"></a-text>
+      </a-entity>
 
       <!-- GTR -->
       <a-entity position="0 0 -5">
@@ -179,12 +185,15 @@
       <!-- Camera with cursor -->
       <a-camera>
         <a-cursor
-        material="color: #FFFFFF; opacity: 0; transparent: true">
+        material="color: #FFFFFF; opacity: 0.5; transparent: true">
         </a-cursor>
       </a-camera>
     </a-scene>
 
     <script>
+      // Global flag to prevent multiple model changes at once
+      let isChangingModel = false;
+      
       // link
       function setupImageLinks() {
         const links = [
@@ -202,22 +211,63 @@
         });
       }
 
-      // Function to change Porsche model
+      // Function to change Porsche model with memory management
       function changePorscheModel(color) {
+        if (isChangingModel) return;
+        isChangingModel = true;
+        
         const porscheModel = document.querySelector("#porscheModel");
-        if (color === 'white') {
-          porscheModel.setAttribute('gltf-model', '#whitePorsche');
-          porscheModel.setAttribute('scale', '1.5 1.5 1.5'); // Scale for white Porsche
-        } else if (color === 'green') {
-          porscheModel.setAttribute('gltf-model', '#greenPorsche');
-          porscheModel.setAttribute('scale', '150 150 150'); // Scale for green Porsche (adjust as needed)
-        }
+        const spinner = document.querySelector("#loadingSpinner");
+        
+        // Show loading spinner
+        spinner.setAttribute('visible', 'true');
+        porscheModel.setAttribute('visible', 'false');
+        
+        // Remove previous model to free memory
+        porscheModel.removeAttribute('gltf-model');
+        
+        // Wait for cleanup to complete
+        setTimeout(() => {
+          try {
+            if (color === 'white') {
+              porscheModel.setAttribute('gltf-model', '#whitePorsche');
+              porscheModel.setAttribute('scale', '1.5 1.5 1.5');
+            } else if (color === 'green') {
+              porscheModel.setAttribute('gltf-model', '#greenPorsche');
+              porscheModel.setAttribute('scale', '150 150 150');
+            }
+            
+            // Handle successful load
+            function onModelLoaded() {
+              porscheModel.setAttribute('visible', 'true');
+              spinner.setAttribute('visible', 'false');
+              porscheModel.removeEventListener('model-loaded', onModelLoaded);
+              isChangingModel = false;
+            }
+            
+            // Handle errors
+            function onModelError() {
+              console.error('Failed to load model');
+              spinner.setAttribute('visible', 'false');
+              isChangingModel = false;
+              porscheModel.removeEventListener('error', onModelError);
+            }
+            
+            porscheModel.addEventListener('model-loaded', onModelLoaded);
+            porscheModel.addEventListener('error', onModelError);
+            
+          } catch (error) {
+            console.error('Error changing model:', error);
+            spinner.setAttribute('visible', 'false');
+            isChangingModel = false;
+          }
+        }, 50); // Small delay to ensure cleanup
       }
 
       window.addEventListener('DOMContentLoaded', function() {
         setupImageLinks();
         
-        // Add event listeners for color buttons
+        // Add debounced event listeners for color buttons
         document.querySelector("#greenButton").addEventListener('click', function() {
           changePorscheModel('green');
         });
@@ -229,12 +279,9 @@
         const gtrVideo = document.querySelector("#gtrVideo");
         const porscheVideo = document.querySelector("#porscheVideo");
     
-
         // Improved video handling
         function handleVideo(video) {
-          // Check if video is ready
-          if (video.readyState >= 3) {
-            // HAVE_FUTURE_DATA
+          if (video.readyState >= 3) { // HAVE_FUTURE_DATA
             video.play().catch((e) => {
               console.error("Auto-play failed:", e);
               // Fallback: Play on user interaction
@@ -256,7 +303,6 @@
           video.addEventListener("canplay", () => handleVideo(video));
           video.addEventListener("error", function () {
             console.error("Video error:", video.error);
-            alert(`Video failed to load. Error code: ${video.error.code}`);
           });
         });
 
